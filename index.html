@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UK Market Access &amp; NICE Health Technology Assessment Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
+      },
+      borderRadius: { DEFAULT: '4px' }
+    }
+  }
+};
+</script>
+<style>
+  body { background: #F8FAFC; color: #334155; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+  .tabular { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 16px;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    background: #CBD5E1;
+    border-radius: 2px;
+  }
+  input[type="range"]::-moz-range-track {
+    height: 4px;
+    background: #CBD5E1;
+    border-radius: 2px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -6px;
+    border-radius: 50%;
+    background: #0F172A;
+    border: none;
+    transition: box-shadow 0.15s ease;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #0F172A;
+    border: none;
+    transition: box-shadow 0.15s ease;
+  }
+  input[type="range"]:hover::-webkit-slider-thumb,
+  input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.14); }
+  input[type="range"]:hover::-moz-range-thumb,
+  input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.14); }
+  input[type="range"]:focus { outline: none; }
+  select:focus-visible, button:focus-visible { outline: 2px solid #0F172A; outline-offset: 2px; }
+  .preset-btn[aria-pressed="true"] { background: #0F172A; color: #FFFFFF; border-color: #0F172A; }
+  .status-favourable { background: #F0FDFA; border-color: #99F6E4; color: #0F766E; }
+  .status-unfavourable { background: #FEF2F2; border-color: #FECACA; color: #B91C1C; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body class="min-h-screen">
+
+<header class="w-full bg-white border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex flex-col md:flex-row md:items-end md:justify-between gap-2">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">UK Market Access &amp; NICE Health Technology Assessment Model</h1>
+      <p class="text-sm text-[#64748B] mt-1">Commercial Reimbursement &amp; QALY Sensitivity Simulator</p>
+    </div>
+    <span class="text-xs font-medium text-[#64748B] border border-slate-200 rounded px-2 py-1 self-start md:self-auto">NICE HTA Framework (England &amp; Wales)</span>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+  <section aria-label="Case study presets" class="mb-6">
+    <div class="flex flex-col sm:flex-row gap-2" role="group">
+      <button type="button" class="preset-btn flex-1 bg-white border border-slate-200 rounded px-4 py-2.5 text-sm font-medium text-[#0F172A] text-left hover:border-slate-400 transition-colors" data-preset="carT" aria-pressed="false">CAR-T Oncology Therapy</button>
+      <button type="button" class="preset-btn flex-1 bg-white border border-slate-200 rounded px-4 py-2.5 text-sm font-medium text-[#0F172A] text-left hover:border-slate-400 transition-colors" data-preset="cardiometabolic" aria-pressed="false">Cardiometabolic Biologic</button>
+      <button type="button" class="preset-btn flex-1 bg-white border border-slate-200 rounded px-4 py-2.5 text-sm font-medium text-[#0F172A] text-left hover:border-slate-400 transition-colors" data-preset="geneTherapy" aria-pressed="false">Paediatric Gene Therapy</button>
+    </div>
+    <div class="mt-3 bg-white border border-slate-200 rounded px-4 py-3">
+      <p id="briefingText" class="text-sm leading-relaxed text-[#334155]">Select a case study to load a realistic parameter set, or adjust the sliders directly.</p>
+    </div>
+  </section>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <section class="lg:col-span-5 bg-white border border-slate-200 rounded" aria-label="Model parameters">
+      <div class="px-5 py-4 border-b border-slate-200">
+        <h2 class="text-base font-semibold text-[#0F172A]">Model Parameters</h2>
+      </div>
+
+      <div class="px-5 py-5 border-b border-slate-200 space-y-5">
+        <h3 class="text-sm font-semibold text-[#0F172A]">Pricing &amp; Commercial Terms</h3>
+        <div>
+          <div class="flex justify-between items-baseline mb-2">
+            <label for="listPrice" class="text-sm text-[#334155]">List price per patient</label>
+            <output id="listPriceOut" class="tabular text-sm font-medium text-[#0F172A]"></output>
+          </div>
+          <input type="range" id="listPrice" min="10000" max="350000" step="1000">
+        </div>
+        <div>
+          <div class="flex justify-between items-baseline mb-2">
+            <label for="comparatorCost" class="text-sm text-[#334155]">Comparator cost per patient</label>
+            <output id="comparatorCostOut" class="tabular text-sm font-medium text-[#0F172A]"></output>
+          </div>
+          <input type="range" id="comparatorCost" min="1000" max="50000" step="500">
+        </div>
+        <div>
+          <div class="flex justify-between items-baseline mb-2">
+            <label for="pasDiscount" class="text-sm text-[#334155]">Confidential PAS discount</label>
+            <output id="pasDiscountOut" class="tabular text-sm font-medium text-[#0F172A]"></output>
+          </div>
+          <input type="range" id="pasDiscount" min="0" max="80" step="1">
+        </div>
+      </div>
+
+      <div class="px-5 py-5 border-b border-slate-200 space-y-5">
+        <h3 class="text-sm font-semibold text-[#0F172A]">Clinical Efficacy &amp; NICE Pathway</h3>
+        <div>
+          <div class="flex justify-between items-baseline mb-2">
+            <label for="lifeYears" class="text-sm text-[#334155]">Incremental life years gained</label>
+            <output id="lifeYearsOut" class="tabular text-sm font-medium text-[#0F172A]"></output>
+          </div>
+          <input type="range" id="lifeYears" min="0.1" max="8" step="0.1">
+        </div>
+        <div>
+          <div class="flex justify-between items-baseline mb-2">
+            <label for="utilityGain" class="text-sm text-[#334155]">Utility gain per year</label>
+            <output id="utilityGainOut" class="tabular text-sm font-medium text-[#0F172A]"></output>
+          </div>
+          <input type="range" id="utilityGain" min="0.05" max="0.85" step="0.01">
+        </div>
+        <div>
+          <label for="threshold" class="block text-sm text-[#334155] mb-2">Cost-effectiveness threshold</label>
+          <select id="threshold" class="tabular w-full bg-white border border-slate-300 rounded px-3 py-2 text-sm text-[#0F172A]">
+            <option value="30000">Standard Appraisal — £30,000 / QALY</option>
+            <option value="36000">Moderate Severity 1.2x — £36,000 / QALY</option>
+            <option value="51000">High Severity 1.7x — £51,000 / QALY</option>
+            <option value="100000">Highly Specialised Technology — £100,000 / QALY</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="px-5 py-5 space-y-5">
+        <h3 class="text-sm font-semibold text-[#0F172A]">NHS Epidemiology &amp; Commercial Uptake</h3>
+        <div>
+          <div class="flex justify-between items-baseline mb-2">
+            <label for="eligiblePatients" class="text-sm text-[#334155]">Eligible NHS patients per year</label>
+            <output id="eligiblePatientsOut" class="tabular text-sm font-medium text-[#0F172A]"></output>
+          </div>
+          <input type="range" id="eligiblePatients" min="100" max="50000" step="100">
+        </div>
+        <div>
+          <div class="flex justify-between items-baseline mb-2">
+            <label for="uptake" class="text-sm text-[#334155]">Market uptake</label>
+            <output id="uptakeOut" class="tabular text-sm font-medium text-[#0F172A]"></output>
+          </div>
+          <input type="range" id="uptake" min="5" max="80" step="1">
+        </div>
+      </div>
+    </section>
+
+    <section class="lg:col-span-7 space-y-6" aria-label="Valuation and policy outputs">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3">
+        <div class="xl:col-span-2 bg-white border border-slate-200 rounded p-4">
+          <p class="text-xs text-[#64748B]">Net NHS Price (Post-PAS)</p>
+          <p id="kpiNetPrice" class="tabular text-xl font-semibold text-[#0F172A] mt-2"></p>
+        </div>
+        <div class="xl:col-span-2 bg-white border border-slate-200 rounded p-4">
+          <p class="text-xs text-[#64748B]">Incremental QALYs Gained</p>
+          <p id="kpiQalys" class="tabular text-xl font-semibold text-[#0F172A] mt-2"></p>
+        </div>
+        <div id="cardIcer" class="xl:col-span-2 border rounded p-4">
+          <p class="text-xs opacity-80">Incremental Cost-Effectiveness Ratio (ICER)</p>
+          <p id="kpiIcer" class="tabular text-xl font-semibold mt-2"></p>
+        </div>
+        <div id="cardBreakEven" class="sm:col-span-1 xl:col-span-3 border rounded p-4">
+          <p class="text-xs opacity-80">Break-Even PAS Discount for Approval</p>
+          <p id="kpiBreakEven" class="tabular text-xl font-semibold mt-2"></p>
+        </div>
+        <div class="sm:col-span-1 xl:col-span-3 bg-white border border-slate-200 rounded p-4">
+          <p class="text-xs text-[#64748B]">Annual Net NHS Revenue (£m)</p>
+          <p id="kpiRevenue" class="tabular text-xl font-semibold text-[#0F172A] mt-2"></p>
+          <p id="kpiPatients" class="tabular text-xs text-[#64748B] mt-1"></p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div id="bannerNice" class="border rounded px-4 py-3" role="status" aria-live="polite">
+          <p class="text-xs opacity-80">NICE Technology Appraisal Verdict</p>
+          <p id="bannerNiceText" class="text-sm font-semibold mt-1"></p>
+        </div>
+        <div id="bannerBudget" class="border rounded px-4 py-3" role="status" aria-live="polite">
+          <p class="text-xs opacity-80">NHS England £20m Budget Impact Test</p>
+          <p id="bannerBudgetText" class="text-sm font-semibold mt-1"></p>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded p-5">
+        <div class="mb-4">
+          <h2 class="text-base font-semibold text-[#0F172A]">ICER Sensitivity to PAS Discount</h2>
+          <p class="text-xs text-[#64748B] mt-1">Net ICER (£ per QALY) across discount levels, against the active NICE threshold.</p>
+        </div>
+        <div class="h-80 relative">
+          <canvas id="icerSensitivityChart"></canvas>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="border-t border-slate-200 bg-white mt-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <h2 class="text-base font-semibold text-[#0F172A] mb-5">Methodology &amp; Governance</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm leading-relaxed text-[#334155]">
+      <div class="space-y-5">
+        <div>
+          <h3 class="font-semibold text-[#0F172A] mb-1">Incremental Cost-Effectiveness Ratio</h3>
+          <p>The ICER is the additional cost of a new technology per additional quality-adjusted life year gained over its comparator: ICER = ΔCost / ΔQALY. Here ΔCost is the net price after any discount minus the comparator cost, and ΔQALY is incremental life years multiplied by the annual utility gain. Where ΔCost is zero or negative, the technology dominates.</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-[#0F172A] mb-1">Confidential Patient Access Schemes</h3>
+          <p>A Patient Access Scheme is a commercial arrangement between a manufacturer and NHS England that lowers the effective price paid by the NHS without changing the published list price. The discount is typically confidential, which is why the model reports a break-even discount rather than a fixed price.</p>
+        </div>
+      </div>
+      <div class="space-y-5">
+        <div>
+          <h3 class="font-semibold text-[#0F172A] mb-1">NICE Severity Weighting</h3>
+          <p>NICE applies a standard threshold of £20,000 to £30,000 per QALY. Under the severity modifier, QALY weights of 1.2x and 1.7x apply to conditions with greater absolute or proportional shortfall, lifting the effective threshold to about £36,000 and £51,000. Highly Specialised Technologies for very rare conditions are assessed against a ceiling of up to £100,000 per QALY.</p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-[#0F172A] mb-1">NHS England £20m Budget Impact Test</h3>
+          <p>Where the expected net annual cost to the NHS in any of the first three years exceeds £20 million, NHS England may negotiate commercial terms or phase the introduction. The model compares net price multiplied by treated patients against this limit.</p>
+        </div>
+      </div>
+    </div>
+    <p class="mt-8 pt-5 border-t border-slate-200 text-xs text-[#64748B] leading-relaxed">This tool is an educational simplification and is not affiliated with or endorsed by NICE or NHS England. It omits discounting, time horizon, comparator mix, uncertainty analysis and decision modifiers beyond severity, and must not be used for reimbursement decisions or investment advice. All presets are illustrative.</p>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 });
+  const integer = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 0 });
+  const DISCOUNT_STEPS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80];
+  const BUDGET_IMPACT_LIMIT_MILLIONS = 20.0;
+
+  const PRESETS = {
+    carT: {
+      values: { listPrice: 280000, comparatorCost: 35000, lifeYears: 3.2, utilityGain: 0.55, pasDiscount: 35, threshold: 51000, eligiblePatients: 600, uptake: 45 },
+      briefing: 'High-cost autologous cell therapies rely on NICE\u2019s 1.7x High Severity modifier, which lifts the effective threshold to \u00a351,000 per QALY, and on substantial confidential PAS discounts to offset upfront manufacturing costs. Small eligible populations keep total NHS spend manageable even at a net price well above \u00a3150,000.'
+    },
+    cardiometabolic: {
+      values: { listPrice: 18000, comparatorCost: 2500, lifeYears: 0.6, utilityGain: 0.25, pasDiscount: 20, threshold: 30000, eligiblePatients: 25000, uptake: 30 },
+      briefing: 'Chronic primary-care biologics face the strict \u00a330,000 per QALY limit because the severity modifier rarely applies. Large patient volumes mean they frequently trigger NHS England\u2019s \u00a320m annual budget impact negotiation rule even when the ICER is borderline.'
+    },
+    geneTherapy: {
+      values: { listPrice: 340000, comparatorCost: 40000, lifeYears: 6.5, utilityGain: 0.70, pasDiscount: 30, threshold: 100000, eligiblePatients: 120, uptake: 65 },
+      briefing: 'One-off curative therapies for ultra-rare paediatric conditions qualify for NICE\u2019s Highly Specialised Technology (HST) pathway, which applies a \u00a3100,000 per QALY ceiling. Very small patient numbers keep the budget impact low despite a six-figure net price.'
+    }
+  };
+
+  const FORMATTERS = {
+    listPrice: v => gbp.format(v),
+    comparatorCost: v => gbp.format(v),
+    pasDiscount: v => `${v}%`,
+    lifeYears: v => `${v.toFixed(1)} yrs`,
+    utilityGain: v => `+${v.toFixed(2)} QALY/yr`,
+    eligiblePatients: v => `${integer.format(v)} patients`,
+    uptake: v => `${v}%`
+  };
+
+  const state = { ...PRESETS.carT.values };
+
+  const calculateMetrics = (s) => {
+    const netPrice = s.listPrice * (1 - s.pasDiscount / 100);
+    const incrementalCost = netPrice - s.comparatorCost;
+    const incrementalQalys = s.lifeYears * s.utilityGain;
+    const icer = incrementalCost / incrementalQalys;
+    const isDominant = incrementalCost <= 0;
+    const maxAllowablePrice = s.comparatorCost + s.threshold * incrementalQalys;
+    const rawRequiredDiscount = (1 - maxAllowablePrice / s.listPrice) * 100;
+    const treatedPatients = Math.round(s.eligiblePatients * (s.uptake / 100));
+    const annualRevenueMillions = (netPrice * treatedPatients) / 1000000;
+    const isRecommended = isDominant || icer <= s.threshold;
+    const exceedsBudgetImpact = annualRevenueMillions > BUDGET_IMPACT_LIMIT_MILLIONS;
+
+    let breakEvenLabel;
+    if (rawRequiredDiscount <= 0) breakEvenLabel = '0.0% (Approved at List)';
+    else if (rawRequiredDiscount > 80) breakEvenLabel = '>80.0% (Commercially Unviable)';
+    else breakEvenLabel = `${rawRequiredDiscount.toFixed(1)}%`;
+
+    return {
+      netPrice, incrementalCost, incrementalQalys, icer, isDominant,
+      rawRequiredDiscount, breakEvenLabel, treatedPatients,
+      annualRevenueMillions, isRecommended, exceedsBudgetImpact
+    };
+  };
+
+  const el = (id) => document.getElementById(id);
+  const setStatus = (node, favourable) => {
+    node.classList.remove('status-favourable', 'status-unfavourable', 'bg-white', 'border-slate-200');
+    node.classList.add(favourable ? 'status-favourable' : 'status-unfavourable');
+  };
+
+  const buildCurve = (s, incrementalQalys) =>
+    DISCOUNT_STEPS.map(d => ({ x: d, y: (s.listPrice * (1 - d / 100) - s.comparatorCost) / incrementalQalys }));
+
+  let chart;
+
+  const initChart = () => {
+    const ctx = el('icerSensitivityChart').getContext('2d');
+    const metrics = calculateMetrics(state);
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: [
+          {
+            label: 'Net ICER',
+            data: buildCurve(state, metrics.incrementalQalys),
+            borderColor: '#0F172A',
+            backgroundColor: '#0F172A',
+            borderWidth: 2,
+            tension: 0.1,
+            pointRadius: 3
+          },
+          {
+            label: 'Active NICE threshold',
+            data: DISCOUNT_STEPS.map(d => ({ x: d, y: state.threshold })),
+            borderColor: '#0F766E',
+            backgroundColor: '#0F766E',
+            borderDash: [6, 4],
+            borderWidth: 2,
+            pointRadius: 0
+          },
+          {
+            label: 'Current PAS discount',
+            data: [{ x: state.pasDiscount, y: metrics.icer }],
+            showLine: false,
+            borderColor: '#B91C1C',
+            pointRadius: 6,
+            pointHoverRadius: 7,
+            pointBackgroundColor: '#B91C1C',
+            pointBorderColor: '#FFFFFF',
+            pointBorderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        interaction: { mode: 'nearest', intersect: false },
+        scales: {
+          x: {
+            type: 'linear',
+            min: 0,
+            max: 80,
+            title: { display: true, text: 'PAS discount', color: '#64748B', font: { family: 'Inter', size: 12 } },
+            ticks: { stepSize: 5, color: '#64748B', font: { family: 'JetBrains Mono', size: 11 }, callback: v => `${v}%` },
+            grid: { color: '#F1F5F9' }
+          },
+          y: {
+            title: { display: true, text: 'ICER (£ per QALY)', color: '#64748B', font: { family: 'Inter', size: 12 } },
+            ticks: { color: '#64748B', font: { family: 'JetBrains Mono', size: 11 }, callback: v => gbp.format(v) },
+            grid: { color: '#E2E8F0' }
+          }
+        },
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#334155', usePointStyle: true, boxWidth: 8, font: { family: 'Inter', size: 12 } } },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            cornerRadius: 4,
+            titleFont: { family: 'JetBrains Mono', size: 12 },
+            bodyFont: { family: 'JetBrains Mono', size: 12 },
+            callbacks: {
+              title: items => `PAS discount ${Number(items[0].parsed.x).toFixed(0)}%`,
+              label: item => `${item.dataset.label}: ${gbp.format(item.parsed.y)}`
+            }
+          }
+        }
+      }
+    });
+  };
+
+  const updateChart = (metrics) => {
+    chart.data.datasets[0].data = buildCurve(state, metrics.incrementalQalys);
+    chart.data.datasets[1].data = DISCOUNT_STEPS.map(d => ({ x: d, y: state.threshold }));
+    chart.data.datasets[2].data = [{ x: state.pasDiscount, y: metrics.icer }];
+    chart.update('none');
+  };
+
+  const render = () => {
+    const m = calculateMetrics(state);
+
+    Object.keys(FORMATTERS).forEach(key => { el(`${key}Out`).textContent = FORMATTERS[key](state[key]); });
+
+    el('kpiNetPrice').textContent = gbp.format(m.netPrice);
+    el('kpiQalys').textContent = m.incrementalQalys.toFixed(2);
+    el('kpiIcer').textContent = m.isDominant ? 'Dominant (Cost-Saving)' : `${gbp.format(m.icer)} / QALY`;
+    el('kpiBreakEven').textContent = m.breakEvenLabel;
+    el('kpiRevenue').textContent = `£${m.annualRevenueMillions.toFixed(1)}m`;
+    el('kpiPatients').textContent = `${integer.format(m.treatedPatients)} treated patients`;
+
+    ['cardIcer', 'cardBreakEven'].forEach(id => {
+      const card = el(id);
+      card.classList.remove('status-favourable', 'status-unfavourable');
+      card.classList.add(m.isRecommended ? 'status-favourable' : 'status-unfavourable');
+    });
+
+    const niceBanner = el('bannerNice');
+    niceBanner.classList.remove('status-favourable', 'status-unfavourable');
+    niceBanner.classList.add(m.isRecommended ? 'status-favourable' : 'status-unfavourable');
+    if (m.isDominant) {
+      el('bannerNiceText').textContent = 'Recommended — the technology is cost-saving against the comparator.';
+    } else if (m.isRecommended) {
+      el('bannerNiceText').textContent = `Recommended — ICER of ${gbp.format(m.icer)} per QALY is within the ${gbp.format(state.threshold)} threshold.`;
+    } else {
+      el('bannerNiceText').textContent = `Not Recommended — ICER of ${gbp.format(m.icer)} per QALY exceeds the ${gbp.format(state.threshold)} threshold.`;
+    }
+
+    const budgetBanner = el('bannerBudget');
+    budgetBanner.classList.remove('status-favourable', 'status-unfavourable');
+    budgetBanner.classList.add(m.exceedsBudgetImpact ? 'status-unfavourable' : 'status-favourable');
+    el('bannerBudgetText').textContent = m.exceedsBudgetImpact
+      ? 'Commercial Negotiation Triggered — Exceeds £20.0m/yr NHS England Budget Impact Threshold'
+      : `Within Threshold — £${m.annualRevenueMillions.toFixed(1)}m/yr is below the £20.0m NHS England limit`;
+
+    updateChart(m);
+  };
+
+  const syncControls = () => {
+    Object.keys(state).forEach(key => { el(key).value = state[key]; });
+  };
+
+  const setActivePreset = (name) => {
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.preset === name));
+    });
+  };
+
+  const loadPreset = (name) => {
+    Object.assign(state, PRESETS[name].values);
+    el('briefingText').textContent = PRESETS[name].briefing;
+    setActivePreset(name);
+    syncControls();
+    render();
+  };
+
+  const bindControls = () => {
+    Object.keys(state).forEach(key => {
+      const control = el(key);
+      const handler = () => {
+        state[key] = parseFloat(control.value);
+        setActivePreset(null);
+        render();
+      };
+      control.addEventListener('input', handler);
+      control.addEventListener('change', handler);
+    });
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => loadPreset(btn.dataset.preset));
+    });
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initChart();
+    bindControls();
+    loadPreset('carT');
+  });
+})();
+</script>
+</body>
+</html>
