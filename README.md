@@ -4,7 +4,7 @@ Interactive healthcare finance and pharmacoeconomic simulator modeling UK market
 
 An interactive healthcare finance and pharmacoeconomic simulator modeling **UK market access**, **NICE drug reimbursement pathways**, and **QALY cost-effectiveness** for innovative medicines in England and Wales.
 
-🔗 **Live Interactive Simulator:** [Launch Web App](https://github.io)
+🔗 **Live Interactive Simulator:** [Launch Web App](https://omarhawamda9.github.io/uk-hta-model)
 
 ---
 
