@@ -34,17 +34,3 @@ This web-based simulator allows users to explore the commercial and clinical tra
   * **Standard Technology Appraisal:** Typically **£20,000 – £30,000 per QALY** gained.
   * **Highly Specialised Technologies (HST):** Up to **£100,000 per QALY** (and higher with QALY weighting) for ultra-rare conditions with low overall NHS budget impact.
 * **Commercial Discounts (PAS):** Demonstrates how confidential list-price discounts reduce the net cost per QALY to achieve positive NICE guidance.
-
----
-
-## Technology Stack
-
-* **HTML5 / CSS3** with **Tailwind CSS** for responsive UI layout
-* **JavaScript (ES6)** for real-time pharmacoeconomic calculations
-* **Chart.js** for interactive cost-effectiveness curve rendering
-
----
-
-## Disclaimer
-
-*This simulator is built for educational, analytical, and portfolio demonstration purposes. All preset figures and scenarios are illustrative models of UK HTA principles and do not represent confidential commercial agreements or official NICE clinical guidance.*
